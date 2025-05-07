@@ -1,29 +1,28 @@
-import { Controller, Post, Body, Request, UseGuards, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Request, UseGuards, Patch, ValidationPipe } from '@nestjs/common'; 
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
+import { ChangePasswordDto, SignInDto, SignUpDto } from './auth.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
-  async signUp(@Body() body: { email: string; password: string }) {
-    await this.authService.signUp(body.email, body.password);
-    return { message: 'User created successfully' };
+  signUp(@Body(ValidationPipe) signUpDto: SignUpDto) { 
+    return this.authService.signUp(signUpDto); 
   }
 
   @Post('signin')
-  async signIn(@Body() body: { email: string; password: string }) {
-    return this.authService.signIn(body.email, body.password);
+  signIn(@Body(ValidationPipe) signInDto: SignInDto) { 
+    return this.authService.signIn(signInDto); 
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('change-password')
-  async changePassword(
+  changePassword(
     @Request() req,
-    @Body() body: { oldPassword: string; newPassword: string },
+    @Body(ValidationPipe) changePasswordDto: ChangePasswordDto, 
   ) {
-    await this.authService.changePassword(req.user.userId, body.oldPassword, body.newPassword);
-    return { message: 'Password changed successfully' };
+    return this.authService.changePassword(req.user.userId, changePasswordDto); 
   }
 }
